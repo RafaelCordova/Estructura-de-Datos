@@ -1,0 +1,338 @@
+//// PAQUETE Control
+/// CLASE Ejecutar
+
+/*
+ ESTRUCTURA DE DATOS
+ Ejercicio: Listas 1
+ * Nombre: Viviana Marcela Peña Márquez. 
+ * Fecha: Jueves, 16 de a abril de 2015.
+ * Institución: Konrad Lorenz Fundación Universitaria.
+ * Profesora: Mireya Gómez Bernal.
+
+ Enunciado:
+Realice un programa que tenga como parámetros dos listas de enteros ordenados de 
+menor a mayor y que devuelva una nueva lista como unión de ambas con sus elementos 
+ordenados de la misma forma.
+ */
+package Control;
+
+import Modelo.ListaEnlazadas;
+import Vista.InOut;
+
+/**
+ *
+ * @author vivmarquez
+ *
+ */
+public class Ejecutar {
+
+    public static void main(String[] args) {
+
+        InOut ob = new InOut();
+        
+        ListaEnlazadas lista1 = new ListaEnlazadas();
+        ListaEnlazadas lista2 = new ListaEnlazadas();
+        
+        ob.mostrarInfo("¡Bienvenidx!\n Este programa unirá dos listas.");
+        
+        //Llenar primera lista.
+        int n = ob.solicitarEntero("Primera lista.\nIngrese un entero: ");
+        lista1.add(n);
+        
+        while(true){
+            boolean aux = ob.solicitarBoolean("Primera lista.\n¿Desea ingresar un nuevo dato?");
+            if(aux==false){
+                break;
+            }
+            n = ob.solicitarEntero("Primera lista.\nIngrese un entero: ");
+            lista1.add(n);
+        }
+         
+        //Llenar segunda lista.
+        int m = ob.solicitarEntero("Segunda lista.\nIngrese un entero: ");
+        lista2.add(m);
+        
+        while(true){
+            boolean aux = ob.solicitarBoolean("Segunda lista.\n¿Desea ingresar un nuevo dato?");
+            if(aux==false){
+                break;
+            }
+            m = ob.solicitarEntero("Segunda lista.\nIngrese un entero: ");
+            lista2.add(m);
+        }
+        
+        
+        String a = "";
+        a=a+"La primera lista es: "+lista1+"\n";
+        a=a+"La segunda lista es: "+lista2+"\n";
+        a=a+"\nOrganizadas son:\n\n";
+        
+        //Organiza cada una de las listas.
+        lista1.organizar();
+        lista2.organizar();
+        a=a+"La primera lista es: "+lista1+"\n";
+        a=a+"La segunda lista es: "+lista2+"\n";
+        
+        //Nueva lista compuesta.
+        
+        ListaEnlazadas listanueva = new ListaEnlazadas();
+        
+        listanueva = listanueva.unir(lista1, lista2);
+        
+        a=a+"\n\nSi unimos las dos listas, la nueva lista es:\n\n"+listanueva+"\n";
+        
+        ob.mostrarInfo(a);
+        
+        
+        
+    }
+
+}
+
+//// PAQUETE MODELO
+/// CLASE ListasEnlazadas
+
+package Modelo;
+
+import java.util.Collections;
+import java.util.Vector;
+
+public class ListaEnlazadas {
+
+    private Node cabeza;
+
+    public ListaEnlazadas() {
+        this.cabeza = null;
+    }
+
+    public Node getCabeza() {
+        return cabeza;
+    }
+
+    //Método para agregar un nodo al final.
+    public void add(int valor) {
+
+        //Creación del objeto Nodo
+        Node nodo = new Node(valor);
+
+        //Si la cabeza está vacia, entonces el nodo ingresado becomes la cabeza.
+        if (this.cabeza == null) {
+            this.cabeza = nodo;
+        } else {
+            //El nodo auxiliar inicialmente queda valiendo la cabeza.
+            Node auxiliar = this.cabeza;
+            //Mientras que el siguiente no sea vácio.
+            while (auxiliar.getSiguiente() != null) {
+                //El auxiliar pasa a tener el valor del siguiente.
+                auxiliar = auxiliar.getSiguiente();
+            }
+            //Cuando se acaba el ciclo, el siguiente, es decir el último, queda valiendo lo del nodo.
+            auxiliar.setSiguiente(nodo);
+        }
+
+    }
+
+    //Método toString
+    public String toString() {
+
+        String s = "";
+        //s=s+"Lista: ";
+
+        Node p = this.cabeza;
+        while (p != null) {
+            s = s + "[" + p.toString() + "]";
+            p = p.getSiguiente();
+        }
+
+        return s;
+    }
+
+    public Vector<Integer> regresarVector() {
+
+        Vector<Integer> vec = new Vector<Integer>();
+
+        Node p = this.cabeza;
+      
+
+        while (p != null) {
+            vec.add(p.getValor());
+            p = p.getSiguiente();
+          
+        }
+
+        return vec;
+
+    }
+
+    public void organizar() {
+
+        while(true){
+            int band=0;
+        Node auxiliar = this.cabeza;
+        Node auxiliar2 = this.cabeza.getSiguiente();
+
+        while (auxiliar2.getSiguiente() != null) {
+
+            if (auxiliar.getValor() > auxiliar2.getValor()) {
+                int aux = auxiliar.getValor();
+                auxiliar.setValor(auxiliar2.getValor());
+                auxiliar2.setValor(aux);
+                band++;
+            }
+            auxiliar = auxiliar2;
+            auxiliar2 = auxiliar.getSiguiente();
+
+            if (auxiliar2 != null && auxiliar2.getSiguiente() == null) {
+                if (auxiliar.getValor() > auxiliar2.getValor()) {
+                    int aux = auxiliar.getValor();
+                    auxiliar.setValor(auxiliar2.getValor());
+                    auxiliar2.setValor(aux);
+                    band++;
+                }
+            }
+            
+            
+        }
+        if(band==0){
+                break;
+            }
+        }
+
+    }
+
+    public ListaEnlazadas unir(ListaEnlazadas l1, ListaEnlazadas l2) {
+
+        ListaEnlazadas nueva = new ListaEnlazadas();
+
+        for (Integer i : l1.regresarVector()) {
+            nueva.add(i);
+        }
+
+        for (Integer i : l2.regresarVector()) {
+            nueva.add(i);
+        }
+
+        nueva = nueva.ordenar(nueva);
+
+        return nueva;
+    }
+
+    public ListaEnlazadas ordenar(ListaEnlazadas l) {
+
+        ListaEnlazadas nueva = new ListaEnlazadas();
+
+        Vector<Integer> vec = l.regresarVector();
+        
+        Collections.sort(vec);
+
+
+        for (Integer i : vec) {
+
+            nueva.add(i);
+        }
+
+        return nueva;
+
+    }
+
+}
+
+/// CLASE Node
+
+package Modelo;
+
+public class Node {
+    
+    private int valor; 
+    private Node siguiente; 
+
+    //Métodos constructores
+    public Node (int valor) { 
+        this.valor = valor; 
+        this.siguiente = null; 
+    } 
+
+    public Node (int cargo, Node siguiente) { 
+        this.valor = cargo; 
+        this.siguiente = siguiente; 
+    } 
+
+    //Métodos Set
+    public void setValor(int valor) {
+        this.valor = valor;
+    }
+
+    public void setSiguiente(Node siguiente) {
+        this.siguiente = siguiente;
+    }
+    
+   //Métodos get
+    public int getValor() {
+        return valor;
+    }
+
+    public Node getSiguiente() {
+        return siguiente;
+    }
+    
+    //Método toString
+    public String toString () { 
+        return valor + ""; 
+    } 
+    
+}
+
+//// PAQUETE Vista
+/// CLASE InOut
+
+package Vista;
+
+import javax.swing.JOptionPane;
+
+public class InOut {
+
+    //Este método se encarga de solicitar string.
+    public String solicitarInfo(String mensaje) {
+        String s = JOptionPane.showInputDialog(mensaje);
+        return s;
+    }
+
+    //Este método se encarga de solicitar entero.
+    public int solicitarEntero(String mensaje) {
+        String s = JOptionPane.showInputDialog(mensaje);
+
+        while (validarStringEntero(s) == false) {
+            s = JOptionPane.showInputDialog("DATO NO VÁLIDO\n" + mensaje);
+        }
+
+        int n = Integer.parseInt(s);
+
+        return n;
+    }
+
+    //Este método se encarga de solicitar boolean.
+    public boolean solicitarBoolean(String mensaje) {
+        if (JOptionPane.showConfirmDialog(null, mensaje, mensaje,
+                JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    //Este método muestra en pantalla el resultado.
+    public void mostrarInfo(String mensaje) {
+        JOptionPane.showMessageDialog(null, mensaje);
+        //Null=Ubicación de Mensaje.
+    }
+
+    public boolean validarStringEntero(String n) {
+        if ((n).matches("[-]?[0-9]+")) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+}
