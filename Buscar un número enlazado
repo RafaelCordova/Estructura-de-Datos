@@ -1,0 +1,248 @@
+//// PAQUETE Control
+/// CLASE Ejecutar
+
+/*
+ ESTRUCTURA DE DATOS
+ Ejercicio: Listas 3
+ * Nombre: Viviana Marcela Peña Márquez. 
+ * Fecha: Jueves, 16 de a abril de 2015.
+ * Institución: Konrad Lorenz Fundación Universitaria.
+ * Profesora: Mireya Gómez Bernal.
+
+ Enunciado:
+Realizar un programa que pida al usuario que introduzca un número por teclado. Buscar 
+en las listas el dato introducido por el usuario. Si se encuentra este dato, el programa 
+deberá devolver el número del nodo en el cual se encontró el dato.
+ */
+package Control;
+
+import Modelo.ListaEnlazadas;
+import Vista.InOut;
+import java.util.Vector;
+
+/**
+ *
+ * @author vivmarquez
+ *
+ */
+public class Ejecutar {
+
+    public static void main(String[] args) {
+
+        InOut ob = new InOut();
+        ListaEnlazadas lista = new ListaEnlazadas();
+        
+        ob.mostrarInfo("¡Bienvenidx!\nA continuación vamos a ingresar datos de la lista enlazada.");
+        
+        int n = ob.solicitarEntero("Ingrese un entero: ");
+        lista.add(n);
+        
+     
+        while(true){
+            boolean aux = ob.solicitarBoolean("¿Desea ingresar un nuevo dato?");
+            if(aux==false){
+                break;
+            }
+            n = ob.solicitarEntero("Ingrese un entero: ");
+            lista.add(n);
+        }
+
+ 
+        String ans = "La lista original es:\n"+lista+"\n\n";
+        
+        //Solicitar un dato a buscar. 
+        int b = ob.solicitarEntero("Ingrese un entero que desea buscar en la lista.");
+        
+        Vector<Integer> v = lista.buscarNumero(b);
+        
+        if(v.size()==0){
+            ans=ans+b+" no se encuentra en la lista.";
+            ob.mostrarInfo(ans);
+            
+        }else{
+        
+            ans = ans+b+" está en la(s) posición(es):\n";
+        
+        for(Integer i : v){
+            ans=ans+i+" ";
+        }
+        
+        ob.mostrarInfo(ans);
+        }
+    }
+
+}
+
+//// PAQUETE Modelo
+/// CLASE ListaEnlazada
+
+package Modelo;
+
+import java.util.Vector;
+
+public class ListaEnlazadas {
+
+    private Node cabeza;
+
+    public ListaEnlazadas() {
+        this.cabeza = null;
+    }
+
+    //Método para agregar un nodo al final.
+    public void add(int valor) {
+
+        //Creación del objeto Nodo
+        Node nodo = new Node(valor);
+
+        //Si la cabeza está vacia, entonces el nodo ingresado becomes la cabeza.
+        if (this.cabeza == null) {
+            this.cabeza = nodo;
+        } else {
+            //El nodo auxiliar inicialmente queda valiendo la cabeza.
+            Node auxiliar = this.cabeza;
+            //Mientras que el siguiente no sea vácio.
+            while (auxiliar.getSiguiente() != null) {
+                //El auxiliar pasa a tener el valor del siguiente.
+                auxiliar = auxiliar.getSiguiente();
+            }
+            //Cuando se acaba el ciclo, el siguiente, es decir el último, queda valiendo lo del nodo.
+            auxiliar.setSiguiente(nodo);
+        }
+
+    }
+
+    //Método toString
+    public String toString() {
+
+        String s = "";
+        //s=s+"Lista: ";
+
+        Node p = this.cabeza;
+        while (p != null) {
+            s = s + "[" + p.toString() + "]";
+            p = p.getSiguiente();
+        }
+
+        return s;
+    }
+
+    public Vector<Integer> buscarNumero(int b) {
+        
+        Vector<Integer> vec = new Vector<Integer>();
+
+        Node n = this.cabeza;
+      
+        int aux=0;
+
+        while (n != null) {
+            aux++;
+            if(n.getValor()==b){
+            vec.add(aux);
+            }
+            n = n.getSiguiente();
+        }
+        return vec;
+    }
+
+}
+
+/// CLASE Node
+
+package Modelo;
+
+public class Node {
+    
+    private int valor; 
+    private Node siguiente; 
+
+    //Métodos constructores
+    public Node (int valor) { 
+        this.valor = valor; 
+        this.siguiente = null; 
+    } 
+
+    public Node (int cargo, Node siguiente) { 
+        this.valor = cargo; 
+        this.siguiente = siguiente; 
+    } 
+
+    //Métodos Set
+    public void setValor(int valor) {
+        this.valor = valor;
+    }
+
+    public void setSiguiente(Node siguiente) {
+        this.siguiente = siguiente;
+    }
+    
+   //Métodos get
+    public int getValor() {
+        return valor;
+    }
+
+    public Node getSiguiente() {
+        return siguiente;
+    }
+    
+    //Método toString
+    public String toString () { 
+        return valor + ""; 
+    } 
+    
+}
+
+
+//// PAQUETE Vista
+/// CLASE InOut
+
+package Vista;
+
+import javax.swing.JOptionPane;
+
+public class InOut {
+
+    //Este método se encarga de solicitar string.
+    public String solicitarInfo(String mensaje) {
+        String s = JOptionPane.showInputDialog(mensaje);
+        return s;
+    }
+
+    //Este método se encarga de solicitar entero.
+    public int solicitarEntero(String mensaje) {
+        String s = JOptionPane.showInputDialog(mensaje);
+
+        while (validarStringEntero(s) == false) {
+            s = JOptionPane.showInputDialog("DATO NO VÁLIDO\n" + mensaje);
+        }
+
+        int n = Integer.parseInt(s);
+
+        return n;
+    }
+
+    //Este método se encarga de solicitar boolean.
+    public boolean solicitarBoolean(String mensaje) {
+        if (JOptionPane.showConfirmDialog(null, mensaje, mensaje,
+                JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    //Este método muestra en pantalla el resultado.
+    public void mostrarInfo(String mensaje) {
+        JOptionPane.showMessageDialog(null, mensaje);
+        //Null=Ubicación de Mensaje.
+    }
+
+    public boolean validarStringEntero(String n) {
+        if ((n).matches("[-]?[0-9]+")) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+}
