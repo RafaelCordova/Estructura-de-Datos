@@ -1,0 +1,630 @@
+//// PAQUETE Control
+/// CLASE Ejecutar
+
+/*
+
+ ESTRUCTURA DE DATOS
+
+ Ejercicio: Listas 5
+
+ * Nombre: Viviana Marcela Peña Márquez. 
+ * Fecha: Jueves, 16 de a abril de 2015.
+ * Institución: Konrad Lorenz Fundación Universitaria.
+ * Profesora: Mireya Gómez Bernal.
+
+ Enunciado:
+
+ Se desea representar los conjuntos mediante listas que no contengan elementos 
+ repetidos. Por ejemplo, el conjunto:
+ {lunes, martes, miércoles, jueves, viernes}
+ se representaría mediante la lista:
+ [lunes, martes, miércoles, jueves, viernes]
+
+ Define los siguientes predicados sobre conjuntos:
+
+ 1. Es conjunto(C)
+ C es un conjunto bien formado.
+
+ 2.Pertenece(X,C)
+ X pertenece a C
+
+ 3. Subconjunto(A,B)
+ A es subconjunto de B
+
+ 4. Unión(A,B,C)
+ C es la unión de A y B
+
+ 5. Diferencia(A,B,C)
+ C es la diferencia de A y B
+
+ 6. Intersección(A,B,C)
+ C es la intersección de A y B
+
+ */
+
+package Control;
+
+import Vista.InOut;
+import Vista.Menu;
+
+/**
+ *
+ * @author vivmarquez
+ *
+ */
+
+public class Ejecutar {
+
+    public static void main(String[] args) {
+
+        InOut ob = new InOut();
+        Menu m = new Menu();
+
+        m.devolverMenu();
+
+    }
+
+}
+
+
+//// PAQUETE Modelo
+/// CLASE ListaEnlazadas
+
+package Modelo;
+
+import java.util.Vector;
+
+public class ListaEnlazadas {
+
+    private Node cabeza;
+
+    public ListaEnlazadas() {
+        this.cabeza = null;
+    }
+
+    //Método para agregar un nodo al final.
+    public void add(String valor) {
+
+        //Creación del objeto Nodo
+        Node nodo = new Node(valor);
+
+        //Si la cabeza está vacia, entonces el nodo ingresado becomes la cabeza.
+        if (this.cabeza == null) {
+            this.cabeza = nodo;
+        } else {
+            //El nodo auxiliar inicialmente queda valiendo la cabeza.
+            Node auxiliar = this.cabeza;
+            //Mientras que el siguiente no sea vácio.
+            while (auxiliar.getSiguiente() != null) {
+                //El auxiliar pasa a tener el valor del siguiente.
+                auxiliar = auxiliar.getSiguiente();
+            }
+            //Cuando se acaba el ciclo, el siguiente, es decir el último, queda valiendo lo del nodo.
+            auxiliar.setSiguiente(nodo);
+        }
+
+    }
+
+    public Vector<String> regresarVector() {
+
+        Vector<String> vec = new Vector<String>();
+
+        Node p = this.cabeza;
+
+        while (p != null) {
+            vec.add(p.getValor());
+            p = p.getSiguiente();
+
+        }
+
+        return vec;
+
+    }
+
+    public boolean buscarDato(String s) {
+
+        Node n = this.cabeza;
+
+        while (n != null) {
+            if (n.getValor().equals(s)) {
+                return true;
+            }
+            n = n.getSiguiente();
+        }
+        return false;
+    }
+
+    public int cuantasVecesDato(String s) {
+
+        Node n = this.cabeza;
+
+        int aux = 0;
+
+        while (n != null) {
+            if (n.getValor().equals(s)) {
+                aux++;
+            }
+            n = n.getSiguiente();
+        }
+
+        return aux;
+    }
+
+    public int size() {
+
+        int aux = 0;
+        
+        Node p = this.cabeza;
+        while (p != null) {
+            aux++;
+            p = p.getSiguiente();
+        }
+
+        return aux;
+    }
+    
+    //Método toString
+    public String toString() {
+
+        String s = "";
+        //s=s+"Lista: ";
+
+        Node p = this.cabeza;
+        while (p != null) {
+            s = s + " " + p.toString() + " ";
+            p = p.getSiguiente();
+        }
+
+        return s;
+    }
+
+}
+
+/// CLASE Node
+
+package Modelo;
+
+public class Node {
+
+    private String valor;
+    private Node siguiente;
+
+    //Métodos constructores
+    public Node(String valor) {
+        this.valor = valor;
+        this.siguiente = null;
+    }
+
+    public Node(String cargo, Node siguiente) {
+        this.valor = cargo;
+        this.siguiente = siguiente;
+    }
+
+    //Métodos Set
+    public void setValor(String valor) {
+        this.valor = valor;
+    }
+
+    public void setSiguiente(Node siguiente) {
+        this.siguiente = siguiente;
+    }
+
+    //Métodos get
+    public String getValor() {
+        return valor;
+    }
+
+    public Node getSiguiente() {
+        return siguiente;
+    }
+
+    //Método toString
+    public String toString() {
+
+        return valor + "";
+
+    }
+
+}
+
+/// CLASE Operaciones
+
+package Modelo;
+
+import java.util.Vector;
+
+/**
+ *
+ * @author vivianamarquez
+ *
+ *
+ */
+public class Operaciones {
+
+    // C 
+    private ListaEnlazadas dias = new ListaEnlazadas();
+
+    //A
+    private ListaEnlazadas diasHabiles = new ListaEnlazadas();
+
+    //B
+    private ListaEnlazadas diasFeriados = new ListaEnlazadas();
+
+    //Método Constructor
+    public Operaciones() {
+        dias();
+        diasFeriados();
+        diasHabiles();
+    }
+
+    public void dias() {
+        dias.add("Lunes");
+        dias.add("Martes");
+        dias.add("Miércoles");
+        dias.add("Jueves");
+        dias.add("Viernes");
+        dias.add("Sábado");
+        dias.add("Domingo");
+    }
+
+    public void diasHabiles() {
+        diasHabiles.add("Lunes");
+        diasHabiles.add("Martes");
+        diasHabiles.add("Miércoles");
+        diasHabiles.add("Jueves");
+        diasHabiles.add("Viernes");
+    }
+
+    public void diasFeriados() {
+        diasFeriados.add("Viernes");
+        diasFeriados.add("Sábado");
+        diasFeriados.add("Domingo");
+    }
+
+    //Métodos get.
+    public ListaEnlazadas getDias() {
+        return dias;
+    }
+
+    public ListaEnlazadas getDiasHabiles() {
+        return diasHabiles;
+    }
+
+    public ListaEnlazadas getDiasFeriados() {
+        return diasFeriados;
+    }
+
+    //Menú Op. 1
+    public boolean bienFormado(ListaEnlazadas c) {
+
+        Vector<String> vec = c.regresarVector();
+
+        boolean aux = true;
+
+        for (String i : vec) {
+            if (c.cuantasVecesDato(i) != 1) {
+                return false;
+
+            }
+        }
+
+        return true;
+
+    }
+
+    //Menú Op. 2
+    public boolean xperteneceac(String s, ListaEnlazadas c) {
+
+        if (c.buscarDato(s) == true) {
+            return true;
+        } else {
+            return false;
+        }
+
+    }
+
+    //Menú Op. 3
+    public boolean subconjunto(ListaEnlazadas b, ListaEnlazadas c) {
+
+        Vector<String> vb = b.regresarVector();
+
+        int aux = 0;
+
+        for (String i : vb) {
+            if (c.buscarDato(i) == true) {
+                aux++;
+            }
+        }
+
+        if (aux != b.size()) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    //Menú Op. 4
+    public ListaEnlazadas union(ListaEnlazadas a, ListaEnlazadas b) {
+
+        Vector<String> va = a.regresarVector();
+        Vector<String> vb = b.regresarVector();
+
+        ListaEnlazadas c = new ListaEnlazadas();
+
+        for (String i : va) {
+            c.add(i);
+        }
+
+        for (String j : vb) {
+            //Para evitar datos repetidos.
+            if (c.buscarDato(j) == false) {
+                c.add(j);
+            }
+        }
+
+        return c;
+
+    }
+
+    //Menú Op. 5
+    public ListaEnlazadas diferencia(ListaEnlazadas a, ListaEnlazadas b) {
+
+        Vector<String> va = a.regresarVector();
+        Vector<String> vb = b.regresarVector();
+
+        ListaEnlazadas c = new ListaEnlazadas();
+
+        for (String i : va) {
+            if (b.buscarDato(i) == false) {
+                c.add(i);
+            }
+        }
+
+        for (String j : vb) {
+            if (a.buscarDato(j) == false) {
+                c.add(j);
+            }
+        }
+
+        return c;
+    }
+
+    //Menú Op. 6
+    public ListaEnlazadas interseccion(ListaEnlazadas a, ListaEnlazadas b) {
+
+        Vector<String> va = a.regresarVector();
+        Vector<String> vb = b.regresarVector();
+
+        ListaEnlazadas c = new ListaEnlazadas();
+
+        for (String i : va) {
+            if (b.buscarDato(i) == true) {
+                c.add(i);
+            }
+        }
+
+        for (String j : vb) {
+            if (a.buscarDato(j) == true && c.buscarDato(j) == false) {
+                c.add(j);
+            }
+        }
+
+        return c;
+
+    }
+
+}
+
+//// PAQUETE Vista
+/// CLASE InOut
+
+package Vista;
+
+import javax.swing.JOptionPane;
+
+public class InOut {
+
+    //Este método se encarga de solicitar string.
+    public String solicitarInfo(String mensaje) {
+        String s = JOptionPane.showInputDialog(mensaje);
+        return s;
+    }
+
+    //Este método se encarga de solicitar entero.
+    public int solicitarEntero(String mensaje) {
+        String s = JOptionPane.showInputDialog(mensaje);
+
+        while (validarStringEntero(s) == false) {
+            s = JOptionPane.showInputDialog("DATO NO VÁLIDO\n" + mensaje);
+        }
+
+        int n = Integer.parseInt(s);
+
+        return n;
+    }
+
+    //Este método se encarga de solicitar entero.
+    public int solicitarEnteroPositivo(String mensaje) {
+        String s = JOptionPane.showInputDialog(mensaje);
+
+        while (validarStringEnteroPositivo(s) == false) {
+            s = JOptionPane.showInputDialog("DATO NO VÁLIDO\n" + mensaje);
+        }
+
+        int n = Integer.parseInt(s);
+
+        return n;
+    }
+
+    //Este método se encarga de solicitar boolean.
+    public boolean solicitarBoolean(String mensaje) {
+        if (JOptionPane.showConfirmDialog(null, mensaje, mensaje,
+                JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    //Este método muestra en pantalla el resultado.
+    public void mostrarInfo(String mensaje) {
+        JOptionPane.showMessageDialog(null, mensaje);
+        //Null=Ubicación de Mensaje.
+    }
+
+    public boolean validarStringEntero(String n) {
+        if ((n).matches("[-]?[0-9]+")) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public boolean validarStringEnteroPositivo(String n) {
+        if ((n).matches("[0-9]+")) {
+            if (Integer.parseInt(n) > 0) {
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+}
+
+/// CLASE Menú
+
+package Vista;
+
+import Modelo.ListaEnlazadas;
+import Modelo.Operaciones;
+
+/**
+ *
+ * @author vivianamarquez
+ *
+ *
+ */
+
+public class Menu {
+
+    InOut ob = new InOut();
+    /// MENÚ
+
+    public int mostrarMenu() {
+        String r = "PROGRAMA LISTAS - CONJUNTOS\n\nMENÚ DE OPCIONES: \n\n";
+        r = r + "1. Es conjunto(C)\nC es un conjunto bien formado\n\n";
+        r = r + "2. Pertenece(X,C)\nX pertenece a C\n\n";
+        r = r + "3. Subconjunto(B,C)\nB es subconjunto de C\n\n";
+        r = r + "4. Unión(A,B,C)\nC es la unión de A y B\n\n";
+        r = r + "5. Diferencia(A,B,C)\nC es la diferencia de A y B\n\n";
+        r = r + "6. Intersección(A,B,C)\nC es la intersección de A y B\n\n";
+        r = r + "7. Ver un dibujo :).\n\n";
+        r = r + "8. Salir.\n";
+        //ob.mostrarInfo(r);
+
+        int op = ob.solicitarEnteroPositivo(r + "\nElija una opción: ");
+        while (op > 8) {
+            op = ob.solicitarEnteroPositivo(r + "\nElija una opción VÁLIDA: ");
+        }
+
+        return op;
+    }
+
+    public void ejecutarMenu(int opc) {
+
+        Operaciones op = new Operaciones();
+
+        ListaEnlazadas c = op.getDias();
+        ListaEnlazadas a = op.getDiasHabiles();
+        ListaEnlazadas b = op.getDiasFeriados();
+
+        switch (opc) {
+
+            case 1:
+                boolean ans1 = op.bienFormado(c);
+                if (ans1 == true) {
+                    ob.mostrarInfo("Opción 1. Es conjunto(C)\nC es un conjunto bien formado\n\nC = {" + c + "}");
+                } else {
+                    ob.mostrarInfo("Opción 1. Es conjunto(C)\nC NO es un conjunto bien formado\n\nC = {" + c + "}");
+                }
+                break;
+
+            case 2:
+                String buscar = "Lunes";
+                boolean ans2 = op.xperteneceac(buscar, c);
+                if (ans2 == true) {
+                    ob.mostrarInfo("Opción 2. Pertenece(X,C)\nX pertenece a C\n\nX = '" + buscar + "'.\nX sí pertenece al conjunto C = {" + c + "}");
+                } else {
+                    ob.mostrarInfo("Opción 2. Pertenece(X,C)\nX pertenece a C\n\nX = '" + buscar + "'.\n X NO pertenece al conjunto C = {" + c + "}");
+                }
+                break;
+
+            case 3:
+                boolean ans3 = op.subconjunto(b, c);
+                if (ans3 == true) {
+                    ob.mostrarInfo("3. Subconjunto(B,C)\nB es subconjunto de C\n\nB = {" + b + "}\nC = {" + c + "}\n\nB sí es subconjunto de C.");
+                } else {
+                    ob.mostrarInfo("3. Subconjunto(B,C)\nB es subconjunto de C\n\nB = {" + b + "}\nC = {" + c + "}\n\nB NO es subconjunto de C.");
+                }
+                break;
+
+            case 4:
+                ListaEnlazadas c4 = op.union(a, b);
+                ob.mostrarInfo("Opción 4. Unión(A,B,C)\nC es la unión de A y B\n\nA = {" + a + "}\nB = {" + b + "}\n\nLa unión de A y B es:\nC = {" + c4 + "}");
+                break;
+
+            case 5:
+                ListaEnlazadas c5 = op.diferencia(a, b);
+                ob.mostrarInfo("Opción 5. Diferencia(A,B,C)\nC es la diferencia de A y B\n\nA = {" + a + "}\nB = {" + b + "}\n\nLa diferencia de A y B es:\nC = {" + c5 + "}");
+                break;
+
+            case 6:
+                ListaEnlazadas c6 = op.interseccion(a, b);
+                ob.mostrarInfo("Opción 6. Intersección(A,B,C)\nC es la intersección de A y B\n\nA = {" + a + "}\nB = {" + b + "}\n\nLa intersección de A y B es:\nC = {" + c6 + "}");
+                break;
+
+            case 7:
+                ob.mostrarInfo("Opción 9:\nVer un dibujo :)\n\n"
+                        + "..................(....¡Prog!...).. \n"
+                        + "....................`--, ,-----´... \n"
+                        + ".......@@@........)/.......... \n"
+                        + ".....@........@.........,....... \n"
+                        + ".....@........@.......o00o... \n"
+                        + ".......@@@.........o@@... \n"
+                        + "..........@..............@....... \n"
+                        + ".......@@@.........@........ \n"
+                        + "......@.@..@.....@.......... \n"
+                        + ".....@..@.....@@............ \n"
+                        + "....@...@........................ \n"
+                        + "...@....@........................ \n"
+                        + "..@.....@........................ \n"
+                        + "..........@........................ \n"
+                        + "........@@....................... \n"
+                        + ".......@..@...................... \n"
+                        + "......@....@..................... \n"
+                        + ".....@......@.................... \n"
+                        + "....@........@................... \n"
+                        + "...@..........@................. \n"
+                        + "@@..........@@................\n");
+                break;
+
+            case 8:
+                ob.mostrarInfo("Opción 8:\nSalir.\nGracias por usar este programa :)");
+                System.exit(0);
+
+        }
+    }
+
+    public void devolverMenu() {
+        int op;
+        do {
+            op = mostrarMenu();
+            ejecutarMenu(op);
+        } while (op != 8);
+    }
+
+}
