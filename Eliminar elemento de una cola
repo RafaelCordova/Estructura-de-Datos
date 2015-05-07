@@ -1,0 +1,181 @@
+/*
+ ESTRUCTURA DE DATOS
+
+ Ejercicio: Colas 1
+//First in - First Out
+
+ * Nombre: Viviana Marcela Peña Márquez. 
+ * Fecha: Jueves, 7 de mayo de 2015.
+ * Institución: Konrad Lorenz Fundación Universitaria.
+ * Profesora: Mireya Gómez Bernal.
+
+ Enunciado:
+
+Realizar un procedimiento que saque el elemento N de una cola.
+Tener en cuenta que los demás elementos deben quedar en el mismo orden. 
+
+ */
+ 
+ //// PAQUETE Control
+ /// CLASE Ejecutar
+ 
+ package Control;
+
+import Modelo.Colas;
+import Vista.InOut;
+
+public class Ejecutar {
+
+    public static void main(String[] args) {
+       
+        InOut ob = new InOut();
+        
+        ob.mostrarInfo("¡Bienvenidx!\nPrimer programa de colas.");
+        
+        Colas c = new Colas();
+        
+        String answer = "La cola original es: "+c.getColas()+"\n";
+        
+        String dadoaremover = ob.solicitarInfo("Ingrese el dato que desea remover de la cola: ");
+       
+        c.remover(dadoaremover);
+        
+        answer = answer+"La cola sin '"+dadoaremover+"' es: "+c.getColas();
+        
+        ob.mostrarInfo(answer);
+        
+    }
+    
+}
+
+//// PAQUETE Modelo
+/// CLASE Colas
+
+package Modelo;
+
+import Vista.InOut;
+import java.util.LinkedList;
+import java.util.Queue;
+
+public class Colas {
+
+    Queue<String> colas;
+    InOut ob = new InOut();
+
+    public Colas() {
+
+        this.colas = new LinkedList<String>();
+
+        String a = ob.solicitarInfo("Ingrese un dato para agregar a la cola:");
+
+        this.colas.offer(a);
+
+        while (true) {
+            boolean aux = ob.solicitarBoolean("\n¿Desea ingresar un nuevo dato a la cola?");
+            if (aux == false) {
+                break;
+            }
+            a = ob.solicitarInfo("Ingrese un dato para agregar a la cola:");
+            this.colas.offer(a);
+        }
+
+    }
+
+    public Queue<String> getColas() {
+        return colas;
+    }
+
+    public void remover(String n) {
+
+        while (true) {
+            if (this.colas.contains(n) == true) {
+                this.colas.remove(n);
+            } else {
+                break;
+            }
+        }
+
+    }
+
+}
+
+
+//// PAQUETE Vista
+/// CLASE InOut
+
+package Vista;
+
+import javax.swing.JOptionPane;
+
+public class InOut {
+    
+    //Este método se encarga de solicitar string.
+    public String solicitarInfo(String mensaje) {
+        String s = JOptionPane.showInputDialog(mensaje);
+        return s;
+    }
+
+    //Este método se encarga de solicitar entero.
+    public int solicitarEntero(String mensaje) {
+        String s = JOptionPane.showInputDialog(mensaje);
+
+        while (validarStringEntero(s) == false) {
+            s = JOptionPane.showInputDialog("DATO NO VÁLIDO\n" + mensaje);
+        }
+
+        int n = Integer.parseInt(s);
+
+        return n;
+    }
+
+    //Este método se encarga de solicitar entero.
+    public int solicitarEnteroPositivo(String mensaje) {
+        String s = JOptionPane.showInputDialog(mensaje);
+
+        while (validarStringEnteroPositivo(s) == false) {
+            s = JOptionPane.showInputDialog("DATO NO VÁLIDO\n" + mensaje);
+        }
+
+        int n = Integer.parseInt(s);
+
+        return n;
+    }
+
+    //Este método se encarga de solicitar boolean.
+    public boolean solicitarBoolean(String mensaje) {
+        if (JOptionPane.showConfirmDialog(null, mensaje, mensaje,
+                JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    //Este método muestra en pantalla el resultado.
+    public void mostrarInfo(String mensaje) {
+        JOptionPane.showMessageDialog(null, mensaje);
+        //Null=Ubicación de Mensaje.
+    }
+
+    public boolean validarStringEntero(String n) {
+        if ((n).matches("[-]?[0-9]+")) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public boolean validarStringEnteroPositivo(String n) {
+        if ((n).matches("[0-9]+")) {
+            if (Integer.parseInt(n) > 0) {
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+    
+}
