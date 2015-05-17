@@ -1,0 +1,1742 @@
+/*
+ ESTRUCTURA DE DATOS
+ PROYECTO FINAL - ESTRUCTURA DE DATOS - SODOKU
+ * Nombre: Viviana Marcela Peña Márquez. 
+ * Fecha: Miércoles, 20 de mayo de 2015.
+ * Institución: Konrad Lorenz Fundación Universitaria.
+ * Profesora: Mireya Gómez Bernal.
+ * Link video YouTube para ver cómo se ve la aplicación: http://youtu.be/s5ztfaul2Rg 
+ * El código está en Spanglish, I hope that's 0k.
+ */
+ 
+ 
+ /* ------------------------- 
+ PAQUETE: Control
+ CLASE: Ejecutar
+ */ -------------------------
+ 
+ 
+ package Control;
+
+import Vista.VentanaBienvenido;
+import javax.swing.SwingUtilities;
+
+/**
+ *
+ * @author vivianamarquez
+ *
+ */
+
+public class Ejecutar {
+
+    public static void main(String[] args) {
+
+        SwingUtilities.invokeLater(new Runnable() {
+
+            public void run() {
+
+                VentanaBienvenido ejecutable = new VentanaBienvenido();
+                ejecutable.setVisible(true);
+                
+            }
+        });
+
+    }
+
+}
+
+/* -------------------------
+ PAQUETE: Modelo
+ CLASE: LoadSudoku
+*/ -------------------------
+ 
+ package Modelo;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Random;
+
+public class LoadSudoku {
+
+    private int[][] sudokuRes;
+    private int[][] sudoku;
+    private ArrayList <String> sudokuResArray = new ArrayList<String>();
+    private ArrayList <String> sudokuArray = new ArrayList<String>();
+    private int n;
+    private String level;
+
+    public LoadSudoku(String level) {
+
+        Random rand = new Random();
+        this.n=rand.nextInt(10) + 1;
+        this.level=level;
+        sudoku();
+
+    }
+
+    public void sudoku() {
+
+        try {
+            String name= "Levels/"+level+"/"+n+".txt";
+            
+            File archive = new File(name);
+            FileReader fr = new FileReader(archive);
+            BufferedReader br = new BufferedReader(fr);
+
+            sudokuRes = new int[9][9];
+            sudoku = new int[9][9];
+
+            String auxiliar = "";
+
+            //Llena el sudoku resuelto
+            for (int i = 0; i < 9; i++) {
+                auxiliar = br.readLine();
+                for (int j = 0; j < 9; j++) {
+                    sudokuRes[i][j] = Integer.parseInt("" + auxiliar.charAt(j));
+                    
+                }
+            }
+
+            //Llena el sudoku para llenar
+            for (int i = 0; i < 9; i++) {
+                auxiliar = br.readLine();
+                for (int j = 0; j < 9; j++) {
+                    if (auxiliar.charAt(j) != '.') {
+                        sudoku[i][j] = Integer.parseInt("" + auxiliar.charAt(j));
+                        
+                    } else {
+                        sudoku[i][j] = 0;
+                        
+                    }
+                }
+            }
+            
+            fr.close();
+            br.close();
+
+        } catch (Exception e) {
+
+            System.err.println("Error reading files.");
+
+        }
+
+    }
+
+    public ArrayList<String> getSudokuArray() {
+        System.out.println(this.level);
+        printSudoku();
+        return sudokuArray;
+    }
+
+    public ArrayList<String> getSudokuResArray() {
+        printSudokuRes();
+        return sudokuResArray;
+    }
+    
+    public boolean chechArrays(ArrayList<String> incoming){
+        return incoming.equals(sudokuArray);
+    }
+    
+    public boolean check(){
+        if(Arrays.equals(sudoku, sudokuRes)){
+            return true;
+        }else{
+            return false;
+        }
+    }
+
+    public void printSudokuRes() {
+
+        for (int i = 0; i < 9; i++) {
+            for (int j = 0; j < 9; j++) {
+                System.out.print(sudokuRes[i][j]);
+                this.sudokuResArray.add(""+sudokuRes[i][j]);
+            }
+            System.out.println("");
+        }
+
+    }
+
+    public void printSudoku() {
+
+        for (int i = 0; i < 9; i++) {
+            for (int j = 0; j < 9; j++) {
+                if (sudoku[i][j] == 0) {
+                    System.out.print(" ");
+                  this.sudokuArray.add(".");
+                } else {
+                    System.out.print(sudoku[i][j]);
+                    this.sudokuArray.add(""+sudoku[i][j]);
+                }
+            }
+            System.out.println("");
+        }
+
+    }
+
+}
+
+
+/* -------------------------
+ PAQUETE: Modelo
+ CLASE: Score
+*/ -------------------------
+
+
+package Modelo;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+public class Score {
+
+    private Map<String, Integer> scores = new HashMap<String, Integer>();
+
+    public Score() {
+        loadScore();
+    }
+
+    private void loadScore() {
+
+        try {
+
+            File archive = new File("Score/Score.txt");
+
+            // if file doesnt exists, then create it
+            if (!archive.exists()) {
+                archive.createNewFile();
+            }
+
+            FileReader fr = new FileReader(archive);
+            BufferedReader br = new BufferedReader(fr);
+
+            String auxiliar = "";
+
+            while ((auxiliar = br.readLine()) != null) {
+
+                String aux[] = auxiliar.split(" ");
+                this.scores.put(aux[0], Integer.parseInt(aux[aux.length-1]));
+
+            }
+
+            fr.close();
+            br.close();
+
+        } catch (Exception e) {
+            System.err.println("Error reading files.");
+        }
+
+    }
+
+    public void sort() {
+
+        //Organiza el puntaje de mayor a menor
+        this.scores = sortScore(this.scores);
+
+        try {
+            File archive = new File("Score/Score.txt");
+
+            clearScore();
+            FileWriter fw = new FileWriter(archive, true);
+
+            for (String s : this.scores.keySet()) {
+                fw.append(s + " " + this.scores.get(s) + "\n");
+            }
+            fw.close();
+        } catch (Exception e) {
+            System.err.println("Error reading files.");
+        }
+
+    }
+
+    public <K, V extends Comparable<? super V>> Map<K, V> sortScore(final Map<K, V> mapToSort) {
+
+        //Lista del tamaño del HashMap
+        List<Map.Entry<K, V>> entries = new ArrayList<Map.Entry<K, V>>(mapToSort.size());
+
+        //Agrega todas 
+        entries.addAll(mapToSort.entrySet());
+
+        //Lo organiza con el comparator
+        Collections.sort(entries, new Comparator<Map.Entry<K, V>>() {
+
+            //Cómo los compara
+            public int compare(final Map.Entry<K, V> entry1, final Map.Entry<K, V> entry2) {
+                return entry2.getValue().compareTo(entry1.getValue());
+            }
+        });
+
+        //Crea Mapa ya organizado. :O Con linkedhash! Extiende de linkedhash.
+        Map<K, V> sortedMap = new LinkedHashMap<K, V>();
+
+        //Llena el mapa.
+        for (Map.Entry<K, V> entry : entries) {
+            sortedMap.put(entry.getKey(), entry.getValue());
+        }
+
+        return sortedMap;
+
+    }
+
+    public void addScore(String name) {
+
+        if (name.isEmpty()) {
+
+        } else {
+
+            try {
+
+                File archive = new File("Score/Score.txt");
+
+                if (this.scores.containsKey(name)) {
+
+                    this.scores.put(name, (this.scores.get(name) + 1));
+
+                    clearScore();
+                    
+                    //True para que no sobre-escriba el archivo, sino que lo escriba al final.
+                    FileWriter fw = new FileWriter(archive, true);
+
+                    for (String s : this.scores.keySet()) {
+                        fw.append(s + " " + this.scores.get(s) + "\n");
+                    }
+                    fw.close();
+
+                } else {
+                    this.scores.put(name, 1);
+
+                    clearScore();
+                    
+                    //True para que no sobre-escriba el archivo, sino que lo escriba al final.
+                    FileWriter fw = new FileWriter(archive, true);
+
+                    for (String s : this.scores.keySet()) {
+                        fw.append(s + " " + this.scores.get(s) + "\n");
+                    }
+                    fw.close();
+
+                }
+
+            } catch (Exception e) {
+                System.err.println("Error reading files.");
+            }
+        }
+    }
+
+    public void clearScore() {
+
+        try {
+
+            File archive = new File("Score/Score.txt");
+            //False para que sobre-escriba el archivo.
+            FileWriter fw = new FileWriter(archive, false);
+            fw.append("");
+            fw.close();
+
+        } catch (Exception e) {
+            System.err.println("Error reading files.");
+        }
+
+    }
+
+    public String toString() {
+
+        String ans = "";
+        int cont = 0;
+        sort();
+
+        for (String s : this.scores.keySet()) {
+            ans = ans + s + "\t" + this.scores.get(s) + " puntos.\n";
+            cont++;
+            if (cont > 10) {
+                break;
+            }
+        }
+
+        return ans;
+
+    }
+
+    public Map<String, Integer> getArray() {
+        sort();
+        return this.scores;
+    }
+
+}
+
+
+/* -------------------------
+ PAQUETE: Vista
+ CLASE: VentanaAcercaDe
+*/ -------------------------
+
+
+package Vista;
+
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Image;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextPane;
+import javax.swing.text.DefaultStyledDocument;
+import javax.swing.text.Style;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyleContext;
+
+public class VentanaAcercaDe extends JFrame {
+
+    public VentanaAcercaDe() {
+        inicio();
+    }
+
+    public void inicio() {
+
+        JPanel panel = new JPanel();
+
+        panel.setLayout(null);
+        panel.setPreferredSize(new Dimension(360, 636));
+
+        //Imagen Sudoku
+        ImageIcon iconSudoku = new ImageIcon("Images/sudokuTitle.png");
+        JLabel imagenSudoku = new JLabel(iconSudoku);
+        imagenSudoku.setBounds(31, 10, 288, 77);
+
+        //Crear el área de Texto con ScrollBar
+        // Create the StyleContext, the document and the pane
+        StyleContext sc = new StyleContext();
+        final DefaultStyledDocument doc = new DefaultStyledDocument(sc);
+        JTextPane area = new JTextPane(doc);
+
+        // Create and add the constant width style
+        final Style miEstilo = sc.addStyle("ConstantWidth", null);
+        StyleConstants.setFontFamily(miEstilo, "RockoFLF");
+        StyleConstants.setFontSize(miEstilo, 15);
+        StyleConstants.setBold(miEstilo, true);
+        Color colore2 = new Color(234, 112, 165);
+        StyleConstants.setForeground(miEstilo, colore2);
+
+        // Create and add the constant width style
+        final Style miEstilo2 = sc.addStyle("ConstantWidth", null);
+        StyleConstants.setItalic(miEstilo2, true);
+        Color colore = new Color(255, 127, 80);
+        StyleConstants.setForeground(miEstilo2, colore);
+        
+        area.setText(text);
+        
+        //Euler
+        ImageIcon iconEuler = new ImageIcon("Images/euler.gif");
+        //Para cambiar el tamaño de la imagen.
+        Image imgEuler = iconEuler.getImage();
+        Image newimgEuler = imgEuler.getScaledInstance(280, 364, java.awt.Image.SCALE_DEFAULT);
+        iconEuler = new ImageIcon(newimgEuler);
+        area.insertIcon(iconEuler);
+
+        doc.setParagraphAttributes(0, 1, miEstilo, false);
+        doc.setCharacterAttributes(379, 8, miEstilo, false);
+        doc.setCharacterAttributes(727, 10, miEstilo, false);
+        doc.setCharacterAttributes(1730, 16, miEstilo, false);
+        doc.setCharacterAttributes(2940, 24, miEstilo, false);
+        doc.setCharacterAttributes(2964, 200, miEstilo2, false);
+
+        area.setBounds(20, 110, 320, 402);
+        area.setEditable(false);
+        
+        area.setFont(new Font("Arial", Font.PLAIN, 12));
+        
+        area.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
+
+        JScrollPane sp = new JScrollPane(area);
+        sp.setBounds(20, 110, 320, 402);
+        sp.getViewport().add(area);
+        area.setCaretPosition(0);
+
+        //Botón Ok
+        JButton button1 = new JButton("Ok");
+        button1.setFont(new Font("RockoFLF", Font.BOLD, 17));
+        button1.setBounds(87, 516, 176, 45); //x y width height
+
+        //©Firma
+        ImageIcon iconV2 = new ImageIcon("Images/v2.png");
+        //Para cambiar el tamaño de la imagen.
+        Image img2 = iconV2.getImage();
+        Image newimg2 = img2.getScaledInstance(130, 17, java.awt.Image.SCALE_SMOOTH);
+        iconV2 = new ImageIcon(newimg2);
+        JLabel imagenV2 = new JLabel(iconV2);
+        imagenV2.setBounds(110, 566, 130, 17);
+
+        //Acción de los botones
+        button1.addActionListener(new ActionListener() {
+
+            public void actionPerformed(ActionEvent event) {
+
+                dispose();
+
+            }
+        });
+
+        //Agregar al panel los elementos.
+        panel.add(imagenSudoku);     
+        panel.add(sp);
+        panel.add(button1);
+        panel.add(imagenV2);
+
+        //Agregar el panel.
+        add(panel);
+
+        pack();
+
+        setSize(360, 636);
+        setTitle("Sudoku [Acerca de] - ©2015 Games V²");
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setLocationRelativeTo(null);
+    }
+
+    public static final String text
+            = "Instrucciones:\n"
+            + "\n"
+            + "Un Sudoku bien formado es uno que tiene una solución única. Este juego está compuesto por una cuadrícula de 9x9 casillas, dividida en regiones de 3x3 casillas. Partiendo de algunos números ya dispuestos en algunas de las casillas, hay que completar las casillas vacías con dígitos del 1 al 9 sin que se repitan por fila, columna o región.\n"
+            + "\n"
+            + "———————————————————————\n"
+            + "Reglas:\n"
+            + "\n"
+            + "Regla 1: hay que completar las casillas vacías con un solo número del 1 al 9.\n"
+            + "\n"
+            + "Regla 2: en una misma fila no puede haber números repetidos.\n"
+            + "\n"
+            + "Regla 3: en una misma columna no puede haber números repetidos.\n"
+            + "\n"
+            + "Regla 4: en una misma región no puede haber números repetidos.\n"
+            + "\n"
+            + "Regla 5: la solución de un sudoku es única.\n"
+            + "\n"
+            + "———————————————————————\n"
+            + "Historia:\n"
+            + "\n"
+            + "El juego es un tipo de Cuadrado Latino con la restricción adicional de los contenidos en las regiones individuales. \n"
+            + "\n"
+            + "Se considera al matemático Leonhard Euler como el creador de este juego. Es un juego matemático que se público por primera vez en 1970 bajo el nombre de “Number place” pero se perdió en el olvido. En la década de 1980 volvió a adquirir popularidad cuando fue publicado en Japón bajo el nombre Sudoku.  Sūji wa dokushin ni kagiru (数字は独身に限る) \"los números deben estar solos\" (literalmente dokushin (独身) = \"célibe, soltero”). El nombre se abrevió a Sūdoku (sū = número, doku = solo). \n"
+            + "\n"
+            + "Es llamado también “el juego de la inteligencia”. Para resolverlos se utiliza la memoria asociativa, que es la que nos permite descubrir patrones de una pista parcial. Es más, no sólo estimula la mente sino que mejora la memoria. A través de este juego se ejercita la mente, e incluso hay personas a quienes la práctica cotidiana mejora sus capacidades matemáticas.\n"
+            + "\n"
+            + "———————————————————————\n"
+            + "Datos Curiosos:\n"
+            + "\n"
+            + "• El matemático Gary McGuire, de la Universidad de Dublín, ha utilizado un algoritmo complejo y \"muchas horas de trabajo ante un superordenador\" para determinar que un sudoku no se puede resolver si no hay un mínimo de 17 cifras-pista en su inicio, ya que con menos \"no existe una solución única\".\n"
+            + "\n"
+            + "• El mejor método para resolver un Sudoku es con la lógica, ya que no es un juego basado en matemáticas. Incluso se pueden utilizar objetos, letras, colores o símbolos en vez de números para resolverlo.\n"
+            + "\n"
+            + "• Los juegos de Sudoku se pueden clasificar como “Fáciles”, “Medio” o “Difíciles” por el tiempo que un computador se toma en resolverlo.\n"
+            + "\n"
+            + "• British Airways prohíbe absolutamente a sus auxiliares de vuelo jugar Sudoku durante el despegue o el aterrizaje.\n"
+            + "\n"
+            + "• Existen 6,670,903,752,021,072,936,960 posibles combinaciones para completar un tablero de 9x9 de Sudoku, pero sólo 5,472,730,538 de ellas valen como diferentes soluciones. Innecesariamente decir, se necesita un puñado de vidas para resolver todos ellos.\n"
+            + "\n"
+            + "• Cuando el Sudoku se convirtió en un éxito mundial en el 2005, se estima que es el fenómeno más grande desde el Cubo de Rubik en la década de los 80’s.\n"
+            + "\n"
+            + "———————————————————————\n"
+            + "Acerca de la aplicación:\n"
+            + "\n"
+            + "La aplicación fue desarrollada por Viviana Márquez.\n"
+            + "vivianam.penam@konradlorenz.edu.co\n"
+            + "twitter.com/vivmarquez\n"
+            + "twitter.com/JavaBogota\n"
+            + "©2015"
+            + "\n"
+            + "\n";
+
+}
+
+
+/* -------------------------
+ PAQUETE: Vista
+ CLASE: VentanaBienvenido
+*/ -------------------------
+
+
+package Vista;
+
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Image;
+import java.awt.Rectangle;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+
+public final class VentanaBienvenido extends JFrame {
+
+    public VentanaBienvenido() {
+        inicio();
+    }
+
+    public void inicio() {
+
+        JPanel panel = new JPanel();
+
+        panel.setLayout(null);
+        panel.setPreferredSize(new Dimension(360, 355));
+
+        //Título de Sudoku
+        ImageIcon iconSudoku = new ImageIcon("Images/sudokuTitle.png");
+        JLabel imagenSudoku = new JLabel(iconSudoku);
+        imagenSudoku.setBounds(31, 10, 288, 77);
+
+        //Imagen bienvenido
+        ImageIcon iconBienvenido = new ImageIcon("Images/bienvenido.png");
+        Image img = iconBienvenido.getImage();
+        Image newimg = img.getScaledInstance(200, 37, java.awt.Image.SCALE_SMOOTH);
+        iconBienvenido = new ImageIcon(newimg);
+        JLabel imagenBienvenido = new JLabel(iconBienvenido);
+        imagenBienvenido.setBounds(75, 97, 200, 37);
+
+        //Botón comenzar
+        JButton button1 = new JButton("¡Comenzar!");
+        button1.setFont(new Font("RockoFLF", Font.BOLD, 17));
+        button1.setBounds(87, 227, 176, 45); //x y width height
+
+        //© Firma
+        ImageIcon iconV2 = new ImageIcon("Images/v2.png");
+        //Para cambiar el tamaño de la imagen.
+        Image img2 = iconV2.getImage();
+        Image newimg2 = img2.getScaledInstance(130, 17, java.awt.Image.SCALE_SMOOTH); //260 33
+        iconV2 = new ImageIcon(newimg2);
+        JLabel imagenV2 = new JLabel(iconV2);
+        imagenV2.setBounds(110, 282, 130, 17);        
+
+        //Texto
+        JLabel jlabel = new JLabel();
+        jlabel.setBounds(new Rectangle(77, 150, 195, 21));
+        jlabel.setText("Ingrese su nickname por favor:");
+        jlabel.setFont(new Font("RockoFLF", Font.BOLD, 13));
+        
+        //Segundo texto
+        JLabel jlabel2 = new JLabel();
+        jlabel2.setBounds(new Rectangle(73, 172, 204, 21));
+        jlabel2.setText("(Dejar en blanco para ser anónimo)");
+        jlabel2.setFont(new Font("RockoFLF", Font.PLAIN, 13));
+
+        //Text field
+        final JTextField jtextfield = new JTextField();
+        jtextfield.setBounds(new Rectangle(30, 194, 290, 21));
+        Color colore = new Color(255,127,80);
+        jtextfield.setForeground(colore);
+        jtextfield.setFont(new Font("RockoFLF", Font.BOLD, 13));
+        jtextfield.setHorizontalAlignment(JTextField.CENTER);
+
+        //Listenr
+        jtextfield.addKeyListener(new KeyListener() {
+
+                    @Override
+                    public void keyTyped(KeyEvent e) {
+
+                        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                    }
+
+                    @Override
+                    public void keyPressed(KeyEvent e) {
+
+                        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                    }
+
+                    @Override
+                    public void keyReleased(KeyEvent e) {
+                        String t = jtextfield.getText();
+                        if (t.contains(" ")) {
+                            jtextfield.setText("");
+                        } else {
+
+                        }
+                        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                    }
+                });
+
+        //Acción de los botones
+        //Este botón accede a la ventana principal.
+        button1.addActionListener(new ActionListener() {
+
+            public void actionPerformed(ActionEvent event) {
+
+                printName(jtextfield.getText());
+
+                dispose();
+
+                ///AQUÍ CÓDIGO
+                SwingUtilities.invokeLater(new Runnable() {
+
+                    public void run() {
+
+                        VentanaPrincipal ejecutable = new VentanaPrincipal();
+                        ejecutable.setVisible(true);
+
+                    }
+                });
+                ///
+
+            }
+        });
+
+        //Agregar elementos al panel
+        panel.add(imagenSudoku);
+        panel.add(imagenBienvenido);
+        panel.add(jlabel);
+        panel.add(jlabel2);
+        panel.add(jtextfield);
+        panel.add(button1);
+        panel.add(imagenV2);
+
+        //Agregar panel
+        add(panel);
+
+        pack();
+
+        setSize(360, 355);
+        setTitle("Sudoku - ©2015 Games V²");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+
+    }
+
+    public void printName(String name) {
+
+        try {
+            File archive = new File("Score/Name.txt");
+            //True para que no sobre-escriba el archivo, sino que lo escriba al final.
+            FileWriter fw = new FileWriter(archive, false);
+            if(name.isEmpty()){
+                fw.append("!null!");
+            }else{
+            fw.append(name); 
+            }
+            fw.close();
+
+        } catch (Exception e) {
+            System.err.println("Error reading files.");
+        
+        }
+        
+    }
+
+ public String getName(){
+     
+     String name = "";
+     
+     try {
+            File archive = new File("Score/Name.txt");
+
+            FileReader fr = new FileReader(archive);
+            BufferedReader br = new BufferedReader(fr);
+            
+            name = br.readLine();
+            
+            fr.close();
+            br.close();
+
+        } catch (Exception e) {
+            System.err.println("Error reading files.");
+        }
+     if(name.equals("!null!")){
+         return "";
+     }else{
+     return name;
+     }
+ }
+
+}
+
+
+/* -------------------------
+ PAQUETE: Vista
+ CLASE: VentanaKeepTrying
+*/ -------------------------
+
+
+package Vista;
+
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Image;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+
+public class VentanaKeepTrying extends JFrame {
+
+    public VentanaKeepTrying() {
+        inicio();
+    }
+
+    public void inicio() {
+
+        //Objeto de VentanaBienvenido. Para adquirir nombre.
+        VentanaBienvenido vb = new VentanaBienvenido();
+
+        JPanel panel = new JPanel();
+
+        panel.setLayout(null);
+        panel.setPreferredSize(new Dimension(360, 470));
+
+        //Título Sudoku
+        ImageIcon iconSudoku = new ImageIcon("Images/sudokuTitle.png");
+        JLabel imagenSudoku = new JLabel(iconSudoku);
+        imagenSudoku.setBounds(31, 10, 288, 77);
+
+        //Texto sigue intentando
+        JLabel jlabel = new JLabel();
+        if (vb.getName().isEmpty()) {
+            jlabel.setText("Sigue intentando");
+            jlabel.setBounds(107, 97, 145, 23); //xy height width
+        } else {
+            jlabel.setText("" + vb.getName() + ", sigue intentando");
+            jlabel.setBounds(70, 97, 240, 23); //xy height width
+        }
+        jlabel.setFont(new Font("RockoFLF", Font.BOLD, 18));
+
+        //Imagen gato
+        ImageIcon iconC = new ImageIcon("Images/Cats/CatClown.gif");
+        Image img = iconC.getImage();
+        Image newimg = img.getScaledInstance(186, 218, java.awt.Image.SCALE_DEFAULT);
+        iconC = new ImageIcon(newimg);
+        JLabel imagenC = new JLabel(iconC);
+        imagenC.setBounds(87, 125, 186, 218);
+
+        //Botón
+        JButton button1 = new JButton("Ok");
+        button1.setFont(new Font("RockoFLF", Font.BOLD, 17));
+        button1.setBounds(87, 350, 176, 45); //x y width height
+
+        //©Firma
+        ImageIcon iconV2 = new ImageIcon("Images/v2.png");
+        //Para cambiar el tamaño de la imagen.
+        Image img2 = iconV2.getImage();
+        Image newimg2 = img2.getScaledInstance(130, 17, java.awt.Image.SCALE_SMOOTH); //260 33
+        iconV2 = new ImageIcon(newimg2);
+        JLabel imagenV2 = new JLabel(iconV2);
+        imagenV2.setBounds(110, 403, 130, 17);
+
+        //Acción de los botones
+        button1.addActionListener(new ActionListener() {
+
+            public void actionPerformed(ActionEvent event) {
+
+                dispose();
+
+            }
+        });
+
+        //Agregar elementos al panel
+        panel.add(imagenSudoku);
+        panel.add(jlabel);
+        panel.add(imagenC);
+        panel.add(button1);
+        panel.add(imagenV2);
+
+        //Agregar panel
+        add(panel);
+
+        pack();
+
+        setSize(360, 470);
+        setTitle("Sudoku [¡Sigue intentando!] - ©2015 Games V²");
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setLocationRelativeTo(null);
+    }
+
+}
+
+
+/* -------------------------
+ PAQUETE: Vista
+ CLASE: VentanaPrincipal
+*/ -------------------------
+
+
+package Vista;
+
+import Modelo.LoadSudoku;
+import Modelo.Score;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.GridLayout;
+import java.awt.Image;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.util.ArrayList;
+import java.util.Collections;
+import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextPane;
+import javax.swing.SwingUtilities;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyledDocument;
+
+//Hereda de la clase JFrame
+public class VentanaPrincipal extends JFrame implements ItemListener {
+
+    //Características de la ventana
+    private JComboBox combo1 = new JComboBox();
+    private JButton button2;
+    private JButton button3;
+    private JButton button4;
+    private JButton button5;
+    private JButton button6;
+    private JButton button7;
+    private JButton button8;
+
+    int cont = -1;
+    JPanel sudokuPanel;
+
+    //Características del Sudoku
+    private String level;
+    private ArrayList<String> b1 = new ArrayList<String>();
+    private ArrayList<String> b2 = new ArrayList<String>();
+    private ArrayList<String> b3 = new ArrayList<String>();
+    private ArrayList<String> b4 = new ArrayList<String>();
+    private LoadSudoku sudoku;
+
+    //Método constructor
+    public VentanaPrincipal() {
+        this.level = "Easy";
+        this.sudoku = new LoadSudoku(this.level);
+        this.b1 = sudoku.getSudokuArray();
+        this.b2 = sudoku.getSudokuResArray();
+        this.b3 = dif();
+        this.b4 = new ArrayList<String>(Collections.nCopies(b2.size(), "" + 0));
+        inicio();
+    }
+
+    public void inicio() {
+
+        JPanel panel = new JPanel();
+
+        panel.setLayout(null);
+        panel.setPreferredSize(new Dimension(735, 620));
+
+        //Título Sudoku
+        ImageIcon iconSudoku = new ImageIcon("Images/sudokuTitle.png");
+        JLabel imagenSudoku = new JLabel(iconSudoku);
+        imagenSudoku.setBounds(308, 10, 288, 77);
+
+        //Imagen Menú
+        ImageIcon iconMenu = new ImageIcon("Images/menu.png");
+        JLabel imagenMenu = new JLabel(iconMenu);
+        imagenMenu.setBounds(67, 113, 102, 37);
+
+        // Remplazar este botón por un JComboBox
+        //Níveis
+        //JComboBox combo1=new JComboBox();
+        combo1.setBounds(30, 164, 176, 30);
+        combo1.addItem("Nível:");
+        combo1.addItem("Easy");
+        combo1.addItem("Intermediate");
+        combo1.addItem("Hard");
+        combo1.setFont(new Font("RockoFLF", Font.BOLD, 17));
+        combo1.addItemListener(this);
+
+        //Botones
+        //Botón nuevo juego
+        button2 = new JButton("Nuevo Juego");
+        button2.setFont(new Font("RockoFLF", Font.BOLD, 17));
+        button2.setBounds(30, 197, 176, 45); //x y width height
+
+        //Botón reiniciar juego
+        button3 = new JButton("Reiniciar Juego");
+        button3.setFont(new Font("RockoFLF", Font.BOLD, 17));
+        button3.setBounds(30, 242, 176, 45); //x y width height
+
+        //Botón comprobar
+        button4 = new JButton("Comprobar");
+        button4.setFont(new Font("RockoFLF", Font.BOLD, 17));
+        button4.setBounds(30, 287, 176, 45); //x y width height
+
+        //Botón resolver
+        button5 = new JButton("Resolver");
+        button5.setFont(new Font("RockoFLF", Font.BOLD, 17));
+        button5.setBounds(30, 332, 176, 45); //x y width height
+
+        //Botón ver puntajes
+        button6 = new JButton("Ver Puntajes");
+        button6.setFont(new Font("RockoFLF", Font.BOLD, 17));
+        button6.setBounds(30, 377, 176, 45); //x y width height
+
+        //Botón acerca de
+        button7 = new JButton("Acerca de");
+        button7.setFont(new Font("RockoFLF", Font.BOLD, 17));
+        button7.setBounds(30, 422, 176, 45); //x y width height
+
+        //Botón salir
+        button8 = new JButton("Salir");
+        button8.setFont(new Font("RockoFLF", Font.BOLD, 17));
+        button8.setBounds(30, 467, 176, 45); //x y width height
+
+        //SUDOKU
+        ///Lineas Horizontales
+        ImageIcon icon1 = new ImageIcon("Images/horizontal2.png");
+        Image i1 = icon1.getImage();
+        i1 = i1.getScaledInstance(470, 8, java.awt.Image.SCALE_SMOOTH);
+        icon1 = new ImageIcon(i1);
+        JLabel imagenh1 = new JLabel(icon1);
+        imagenh1.setBounds(230, 94, 470, 8);
+        panel.add(imagenh1);
+
+        ImageIcon icon2 = new ImageIcon("Images/horizontal.png");
+        Image i2 = icon2.getImage();
+        i2 = i2.getScaledInstance(470, 8, java.awt.Image.SCALE_SMOOTH);
+        icon2 = new ImageIcon(i2);
+        JLabel imagenh2 = new JLabel(icon2);
+        imagenh2.setBounds(230, 248, 470, 8);
+        panel.add(imagenh2);
+
+        JLabel imagenh3 = new JLabel(icon1);
+        imagenh3.setBounds(230, 402, 470, 8);
+        panel.add(imagenh3);
+
+        JLabel imagenh4 = new JLabel(icon2);
+        imagenh4.setBounds(230, 556, 470, 8);
+        panel.add(imagenh4);
+
+        //Líneas Verticales
+        ImageIcon icon3 = new ImageIcon("Images/vertical.png");
+        Image i3 = icon3.getImage();
+        i3 = i3.getScaledInstance(8, 470, java.awt.Image.SCALE_SMOOTH);
+        icon3 = new ImageIcon(i3);
+        JLabel imagenv1 = new JLabel(icon3);
+        imagenv1.setBounds(228, 94, 8, 470);
+        panel.add(imagenv1);
+
+        ImageIcon icon4 = new ImageIcon("Images/vertical2.png");
+        Image i4 = icon4.getImage();
+        i4 = i4.getScaledInstance(8, 470, java.awt.Image.SCALE_SMOOTH);
+        icon4 = new ImageIcon(i4);
+        JLabel imagenv2 = new JLabel(icon4);
+        imagenv2.setBounds(382, 94, 8, 470);
+        panel.add(imagenv2);
+
+        JLabel imagenv3 = new JLabel(icon3);
+        imagenv3.setBounds(536, 94, 8, 470);
+        panel.add(imagenv3);
+
+        JLabel imagenv4 = new JLabel(icon4);
+        imagenv4.setBounds(690, 94, 8, 470);
+        panel.add(imagenv4);
+
+        ///
+        //Crea el panel del Sudoku - Viene del método
+        sudokuPanel = PanelSudoku();
+        sudokuPanel.setBounds(228, 90, 470, 470);
+
+        ///Un botón del tamaño del Sudoku
+        JButton buttonR = new JButton("");
+        buttonR.setFont(new Font("RockoFLF", Font.BOLD, 17));
+        buttonR.setBounds(228, 90, 470, 470); //x y width height
+
+        //© Firma
+        ImageIcon iconV2 = new ImageIcon("Images/v2.png");
+        //Para cambiar el tamaño de la imagen.
+        Image img = iconV2.getImage();
+        Image newimg = img.getScaledInstance(130, 17, java.awt.Image.SCALE_SMOOTH); //260 33
+        iconV2 = new ImageIcon(newimg);
+        JLabel imagenV2 = new JLabel(iconV2);
+        imagenV2.setBounds(53, 522, 130, 17);
+
+        //Acción de los botones
+        //Botón nuevo juego
+        button2.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent event) {
+
+                ///AQUÍ CÓDIGO  
+                setGame();
+                panel.remove(sudokuPanel);
+                sudokuPanel = PanelSudoku();
+                sudokuPanel.setBounds(228, 90, 470, 470);
+                panel.add(sudokuPanel);
+                panel.revalidate();
+                panel.repaint();
+
+                ///
+            }
+        });
+
+        //Botón reiniciar juego
+        button3.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent event) {
+
+                ///AQUÍ CÓDIGO  
+                panel.remove(sudokuPanel);
+                sudokuPanel = PanelSudoku();
+                sudokuPanel.setBounds(228, 90, 470, 470);
+                panel.add(sudokuPanel);
+                panel.revalidate();
+                panel.repaint();
+
+                ///
+            }
+        });
+
+        //Botón Comprobar
+        button4.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent event) {
+
+                ///AQUÍ CÓDIGO
+                SwingUtilities.invokeLater(new Runnable() {
+
+                    public void run() {
+
+                        //Regalo del programador: 
+                        //Si ganas y oprimes varias veces el botón comprobar
+                        //Te sumara más puntos :)
+                        
+                        if (b2.equals(b4)) {
+                            VentanaWinner ejecutable = new VentanaWinner();
+                            ejecutable.setVisible(true);
+                            Score s = new Score();
+                            VentanaBienvenido vb = new VentanaBienvenido();
+                            String name = vb.getName();
+                            if (level.equals("Easy")) {
+                                s.addScore(name);
+                            }
+                            if (level.equals("Intermediate")) {
+                                s.addScore(name);
+                                s.addScore(name);
+                            }
+                            if (level.equals("Hard")) {
+                                s.addScore(name);
+                                s.addScore(name);
+                                s.addScore(name);
+                            }
+
+                        } else {
+                            VentanaKeepTrying ejecutable = new VentanaKeepTrying();
+                            ejecutable.setVisible(true);
+                        }
+                    }
+                });
+
+                ///
+            }
+        });
+
+        //Botón resolver
+        button5.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent event) {
+
+                ///AQUÍ CÓDIGO
+                SwingUtilities.invokeLater(new Runnable() {
+
+                    public void run() {
+
+                        panel.remove(sudokuPanel);
+                        sudokuPanel = PanelSudokuResuelto();
+                        sudokuPanel.setBounds(228, 90, 470, 470);
+                        panel.add(sudokuPanel);
+                        panel.revalidate();
+                        panel.repaint();
+
+                    }
+                });
+
+                ///
+            }
+        });
+
+        //Botón puntajes
+        button6.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent event) {
+
+                ///AQUÍ CÓDIGO
+                SwingUtilities.invokeLater(new Runnable() {
+
+                    public void run() {
+
+                        VentanaPuntajes ejecutable = new VentanaPuntajes();
+                        ejecutable.setVisible(true);
+
+                    }
+                });
+
+                ///
+            }
+        });
+
+        //Botón Acerca de
+        button7.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent event) {
+
+                ///AQUÍ CÓDIGO
+                SwingUtilities.invokeLater(new Runnable() {
+
+                    public void run() {
+
+                        VentanaAcercaDe ejecutable = new VentanaAcercaDe();
+                        ejecutable.setVisible(true);
+
+                    }
+                });
+
+                ///
+            }
+        });
+
+        //Botón Salir
+        button8.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent event) {
+                //Se sale del todo. Diferente del dispose();
+                System.exit(0);
+            }
+        });
+
+        //Agregar elementos al panel
+        panel.add(imagenSudoku);
+        panel.add(imagenMenu);
+        panel.add(combo1);
+        panel.add(button2);
+        panel.add(button3);
+        panel.add(button4);
+        panel.add(button5);
+        panel.add(button6);
+        panel.add(button7);
+        panel.add(button8);
+        //panel.add(buttonR);
+        panel.add(sudokuPanel);
+        panel.add(imagenV2);
+
+        //Agregar panel
+        add(panel);
+
+        pack();
+
+        setSize(735, 620);
+        setTitle("Sudoku - ©2015 Games V²");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+    }
+
+    //Níveis
+    public void itemStateChanged(ItemEvent e) {
+
+        if (e.getSource() == combo1) {
+            String seleccionado = (String) combo1.getSelectedItem();
+            if (seleccionado.equals("Nível:")) {
+                //do nothing
+            } else {
+                this.level = seleccionado;
+            }
+        }
+
+    }
+
+    public JPanel PanelSudoku() {
+
+        JPanel panel = new JPanel();
+
+        //panel.setLayout(null);
+        panel.setPreferredSize(new Dimension(470, 470));
+
+        JPanel panelSudoku = new JPanel();
+        panelSudoku.setPreferredSize(new Dimension(470, 470));
+        //panelSudoku.setBackground(Color.WHITE);
+
+        //Espacio en el borde
+        panelSudoku.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
+
+        //Número de filas, columnas, espacio horizontal, espacio vertical.
+        panelSudoku.setLayout(new GridLayout(9, 9, 12, 12));
+
+        //System.out.println(sudoku.getSudokuArray().toString());
+//        Random rand = new Random();
+//
+//        for (int i = 1; i < 82; i++) {
+//            b1.add("" + (rand.nextInt(9) + 1));
+//        }
+        //Llenar Sudoku con Array del Nível
+        for (int i = 0; i < b1.size(); i++) {
+
+            final int j = i;
+
+            //Casilla vacia
+            if (b1.get(i).equals(".")) {
+
+                JTextPane textPane = new JTextPane();
+                textPane.setText("");
+                textPane.setEditable(true);
+                textPane.setFont(new Font("RockoFLF", Font.BOLD, 24));
+
+                //Color azul para la región
+                if (i == 0 || i == 1 || i == 2 || i == 9 || i == 10 || i == 11 || i == 18 || i == 19 || i == 20 || i == 6 || i == 7 || i == 8 || i == 15 || i == 16 || i == 17 || i == 24 || i == 25 || i == 26 || i == 30 || i == 31 || i == 32 || i == 39 || i == 40 || i == 41 || i == 48 || i == 49 || i == 50 || i == 54 || i == 55 || i == 56 || i == 63 || i == 64 || i == 65 || i == 72 || i == 73 || i == 74 || i == 60 || i == 61 || i == 62 || i == 69 || i == 70 || i == 71 || i == 78 || i == 79 || i == 80) {
+                    Color colore = new Color(224, 235, 250); //Lightblue
+                    textPane.setBackground(colore);
+                }
+
+                //Color colore2 = new Color(234, 112, 165);
+                Color colore2 = new Color(255, 127, 80); //Orange
+
+                //Estilos - Centrar y Colores de letra
+                StyledDocument doc = textPane.getStyledDocument();
+                SimpleAttributeSet center = new SimpleAttributeSet();
+                StyleConstants.setAlignment(center, StyleConstants.ALIGN_CENTER);
+                StyleConstants.setForeground(center, colore2);
+                doc.setParagraphAttributes(0, doc.getLength(), center, false);
+
+                //Agregar al panel
+                panelSudoku.add(textPane);
+
+                //Para sólo permitir números del 1 al 9
+                textPane.addKeyListener(new KeyListener() {
+
+                    @Override
+                    public void keyTyped(KeyEvent e) {
+
+                        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                    }
+
+                    @Override
+                    public void keyPressed(KeyEvent e) {
+
+                        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                    }
+
+                    @Override
+                    public void keyReleased(KeyEvent e) {
+                        String t = textPane.getText();
+                        if (!validarStringEnteroPositivo(t)) {
+                            textPane.setText("");
+                        } else {
+                            b4.set(j, t);
+
+                        }
+                        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                    }
+                });
+
+            } //Casilla con número dado al usuario
+            else {
+
+                JTextPane textPane = new JTextPane();
+
+                //Poner el número
+                textPane.setText((b1.get(i)));
+                b4.set(j, b1.get(i));
+                //Que no se pueda editar
+                textPane.setEditable(false);
+                //Estilo
+                textPane.setFont(new Font("RockoFLF", Font.BOLD, 24));
+
+                //Color azul para la región
+                if (i == 0 || i == 1 || i == 2 || i == 9 || i == 10 || i == 11 || i == 18 || i == 19 || i == 20 || i == 6 || i == 7 || i == 8 || i == 15 || i == 16 || i == 17 || i == 24 || i == 25 || i == 26 || i == 30 || i == 31 || i == 32 || i == 39 || i == 40 || i == 41 || i == 48 || i == 49 || i == 50 || i == 54 || i == 55 || i == 56 || i == 63 || i == 64 || i == 65 || i == 72 || i == 73 || i == 74 || i == 60 || i == 61 || i == 62 || i == 69 || i == 70 || i == 71 || i == 78 || i == 79 || i == 80) {
+                    Color colore = new Color(224, 235, 250);
+                    textPane.setBackground(colore);
+                }
+
+                //Estilos - Centrar y Colores de letra
+                StyledDocument doc = textPane.getStyledDocument();
+                SimpleAttributeSet center = new SimpleAttributeSet();
+                StyleConstants.setAlignment(center, StyleConstants.ALIGN_CENTER);
+                StyleConstants.setForeground(center, Color.darkGray);
+                doc.setParagraphAttributes(0, doc.getLength(), center, false);
+
+                //Agregar al panel
+                panelSudoku.add(textPane);
+            }
+        }
+
+        //Agregar panel
+        panel.add(panelSudoku);
+
+        add(panel);
+
+        //Lo regresa para poderlo útilizar
+        return panel;
+    }
+
+    public ArrayList<String> dif() {
+
+        ArrayList<String> alala = new ArrayList<String>();
+        int i = -1;
+        for (String s : b1) {
+            i++;
+            if (s.equals(".")) {
+                alala.add(b2.get(i));
+            }
+        }
+
+        return alala;
+
+    }
+
+    public JPanel PanelSudokuResuelto() {
+
+        JPanel panel = new JPanel();
+        //panel.setLayout(null);
+        panel.setPreferredSize(new Dimension(470, 470));
+
+        JPanel panelSudoku = new JPanel();
+        panelSudoku.setPreferredSize(new Dimension(470, 470));
+        //panelSudoku.setBackground(Color.WHITE);
+
+        //Espacio en el borde
+        panelSudoku.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
+
+        //Número de filas, columnas, espacio horizontal, espacio vertical.
+        panelSudoku.setLayout(new GridLayout(9, 9, 12, 12));
+
+        //System.out.println(sudoku.getSudokuArray().toString());
+//        Random rand = new Random();
+//
+//        for (int i = 1; i < 82; i++) {
+//            b1.add("" + (rand.nextInt(9) + 1));
+//        }
+        //Llenar Sudoku con Array del Nível
+        for (int i = 0; i < b1.size(); i++) {
+
+            //Casilla vacia
+            if (b1.get(i).equals(".")) {
+
+                JTextPane textPane = new JTextPane();
+                textPane.setText(b2.get(i));
+                textPane.setEditable(false);
+                textPane.setFont(new Font("RockoFLF", Font.BOLD, 24));
+
+                //Color azul para la región
+                if (i == 0 || i == 1 || i == 2 || i == 9 || i == 10 || i == 11 || i == 18 || i == 19 || i == 20 || i == 6 || i == 7 || i == 8 || i == 15 || i == 16 || i == 17 || i == 24 || i == 25 || i == 26 || i == 30 || i == 31 || i == 32 || i == 39 || i == 40 || i == 41 || i == 48 || i == 49 || i == 50 || i == 54 || i == 55 || i == 56 || i == 63 || i == 64 || i == 65 || i == 72 || i == 73 || i == 74 || i == 60 || i == 61 || i == 62 || i == 69 || i == 70 || i == 71 || i == 78 || i == 79 || i == 80) {
+                    Color colore = new Color(224, 235, 250); //Lightblue
+                    textPane.setBackground(colore);
+                }
+
+                //Color colore2 = new Color(234, 112, 165);
+                Color colore2 = new Color(255, 127, 80); //Orange
+
+                //Estilos - Centrar y Colores de letra
+                StyledDocument doc = textPane.getStyledDocument();
+                SimpleAttributeSet center = new SimpleAttributeSet();
+                StyleConstants.setAlignment(center, StyleConstants.ALIGN_CENTER);
+                StyleConstants.setForeground(center, colore2);
+                doc.setParagraphAttributes(0, doc.getLength(), center, false);
+
+                //Agregar al panel
+                panelSudoku.add(textPane);
+
+            } //Casilla con número dado al usuario
+            else {
+
+                JTextPane textPane = new JTextPane();
+
+                //Poner el número
+                textPane.setText((b1.get(i)));
+                //Que no se pueda editar
+                textPane.setEditable(false);
+                //Estilo
+                textPane.setFont(new Font("RockoFLF", Font.BOLD, 24));
+
+                //Color azul para la región
+                if (i == 0 || i == 1 || i == 2 || i == 9 || i == 10 || i == 11 || i == 18 || i == 19 || i == 20 || i == 6 || i == 7 || i == 8 || i == 15 || i == 16 || i == 17 || i == 24 || i == 25 || i == 26 || i == 30 || i == 31 || i == 32 || i == 39 || i == 40 || i == 41 || i == 48 || i == 49 || i == 50 || i == 54 || i == 55 || i == 56 || i == 63 || i == 64 || i == 65 || i == 72 || i == 73 || i == 74 || i == 60 || i == 61 || i == 62 || i == 69 || i == 70 || i == 71 || i == 78 || i == 79 || i == 80) {
+                    Color colore = new Color(224, 235, 250);
+                    textPane.setBackground(colore);
+                }
+
+                //Estilos - Centrar y Colores de letra
+                StyledDocument doc = textPane.getStyledDocument();
+                SimpleAttributeSet center = new SimpleAttributeSet();
+                StyleConstants.setAlignment(center, StyleConstants.ALIGN_CENTER);
+                StyleConstants.setForeground(center, Color.darkGray);
+                doc.setParagraphAttributes(0, doc.getLength(), center, false);
+
+                //Agregar al panel
+                panelSudoku.add(textPane);
+            }
+        }
+
+        //Agregar panel
+        panel.add(panelSudoku);
+
+        add(panel);
+
+        //Lo regresa para poderlo útilizar
+        return panel;
+    }
+
+    public void setGame() {
+        this.sudoku = new LoadSudoku(this.level);
+        this.b1 = sudoku.getSudokuArray();
+        this.b2 = sudoku.getSudokuResArray();
+        this.b3 = dif();
+        this.b4 = new ArrayList<String>(Collections.nCopies(b2.size(), "" + 0));
+    }
+
+    //Validar Números del 1 al 9
+    public boolean validarStringEnteroPositivo(String n) {
+        //También se pudo haber hecho (n).matches("[1-9]?")
+        if ((n).matches("[0-9]+")) {
+            if (Integer.parseInt(n) >= 1 && Integer.parseInt(n) <= 9) {
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+}
+
+
+/* -------------------------
+ PAQUETE: Vista
+ CLASE: VentanaPuntajes
+*/ -------------------------
+
+
+package Vista;
+
+import Modelo.Score;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Image;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.Map;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+
+public class VentanaPuntajes extends JFrame {
+
+    public VentanaPuntajes() {
+        inicio();
+    }
+
+    public void inicio() {
+
+        JPanel panel = new JPanel();
+
+        panel.setLayout(null);
+        panel.setPreferredSize(new Dimension(360, 470));
+
+        //Título Sudoku
+        ImageIcon iconSudoku = new ImageIcon("Images/sudokuTitle.png");
+        JLabel imagenSudoku = new JLabel(iconSudoku);
+        imagenSudoku.setBounds(31, 10, 288, 77);
+
+        //Imagen Puntajes
+        ImageIcon iconPuntaje = new ImageIcon("Images/puntajes.png");
+        Image img = iconPuntaje.getImage();
+        Image newimg = img.getScaledInstance(152, 37, java.awt.Image.SCALE_SMOOTH); //260 33
+        iconPuntaje = new ImageIcon(newimg);
+        JLabel imagenPuntaje = new JLabel(iconPuntaje);
+        imagenPuntaje.setBounds(99, 100, 152, 37);
+
+        //Agregar los puntajes
+        Score scores = new Score();
+        Map<String, Integer> score = scores.getArray();
+
+        int cont = 0;
+        //Altura
+        int h = 155;
+                
+        for (String s : score.keySet()) {
+            String ans =  score.get(s) + " puntos \t-\tJugador: " +s + "";
+            JLabel jlabel = new JLabel();
+            jlabel.setBounds(92, h, 176, 21);
+            jlabel.setText(ans);
+            jlabel.setFont(new Font("RockoFLF", Font.PLAIN, 13));
+            //Agregar al panel
+            panel.add(jlabel);
+            cont++;
+            h=h+21;
+            if (cont > 10) {
+                break;
+            }
+        }
+        
+        //Botón Ok
+        h=h+15;
+        JButton button1 = new JButton("Ok :)");
+        button1.setFont(new Font("RockoFLF", Font.BOLD, 17));
+        button1.setBounds(92, h, 176, 45); //x y width height
+
+        //© Firma
+        h=h+55;
+        ImageIcon iconV2 = new ImageIcon("Images/v2.png");
+        //Para cambiar el tamaño de la imagen.
+        Image img2 = iconV2.getImage();
+        Image newimg2 = img2.getScaledInstance(130, 17, java.awt.Image.SCALE_SMOOTH); //260 33
+        iconV2 = new ImageIcon(newimg2);
+        JLabel imagenV2 = new JLabel(iconV2);
+        imagenV2.setBounds(110,h, 130, 17);
+
+        //Acción de los botones
+        button1.addActionListener(new ActionListener() {
+
+            public void actionPerformed(ActionEvent event) {
+                dispose();
+            }
+        });
+
+        //Agregar al panel
+        panel.add(imagenSudoku);
+        panel.add(imagenPuntaje);
+        panel.add(button1);
+        panel.add(imagenV2);
+
+        //Agregar panel
+        add(panel);
+
+        pack();
+
+        setSize(360, 470);
+        setTitle("Sudoku [Puntajes] - ©2015 Games V²");
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setLocationRelativeTo(null);
+    }
+
+}
+
+
+/* -------------------------
+ PAQUETE: Vista
+ CLASE: VentanaWinner
+*/ -------------------------
+
+
+package Vista;
+
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Image;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+
+public class VentanaWinner extends JFrame {
+
+    public VentanaWinner() {
+        inicio();
+    }
+
+    public void inicio() {
+
+        //Objeto de VentanaBienvenido. Para adquirir nombre.
+        VentanaBienvenido vb = new VentanaBienvenido();
+        
+        JPanel panel = new JPanel();
+
+        panel.setLayout(null);
+        panel.setPreferredSize(new Dimension(360, 636));
+
+        //Título Sudoku
+        ImageIcon iconSudoku = new ImageIcon("Images/sudokuTitle.png");
+        JLabel imagenSudoku = new JLabel(iconSudoku);
+        imagenSudoku.setBounds(31, 10, 288, 77);
+        
+        //Texto
+         JLabel jlabel = new JLabel();
+         if(vb.getName().isEmpty()){
+         jlabel.setText("¡Felicitaciones!");
+         jlabel.setBounds(118, 97, 125, 21); //xy height width
+         }else{
+             jlabel.setText("¡Felicitaciones, "+vb.getName()+"!");
+             jlabel.setBounds(60, 97, 240, 21); //xy height width
+         }
+         jlabel.setFont(new Font("RockoFLF", Font.BOLD, 18));
+
+        //Imagen gato
+        ImageIcon iconC = new ImageIcon("Images/Cats/CatRWJ.gif");
+        JLabel imagenC = new JLabel(iconC);
+        imagenC.setBounds(20, 121, 320, 391);
+
+        //Botón Ok
+        JButton button1 = new JButton("¡Ganaste!");
+        button1.setFont(new Font("RockoFLF", Font.BOLD, 17));
+        button1.setBounds(87, 516, 176, 45); //x y width height
+
+        //© Firma
+        ImageIcon iconV2 = new ImageIcon("Images/v2.png");
+        //Para cambiar el tamaño de la imagen.
+        Image img2 = iconV2.getImage();
+        Image newimg2 = img2.getScaledInstance(130, 17, java.awt.Image.SCALE_SMOOTH); //260 33
+        iconV2 = new ImageIcon(newimg2);
+        JLabel imagenV2 = new JLabel(iconV2);
+        imagenV2.setBounds(110, 566, 130, 17);
+
+        //Acción de los botones
+        button1.addActionListener(new ActionListener() {
+
+            public void actionPerformed(ActionEvent event) {
+        
+                dispose();
+
+            }
+        });
+
+        //Agrega al panel los elementos
+        panel.add(imagenSudoku);
+        panel.add(jlabel);
+        panel.add(imagenC);
+        panel.add(button1);
+        panel.add(imagenV2);
+       
+        //Agrega el panel
+        add(panel);
+
+        pack();
+
+        setSize(360, 636);
+        setTitle("Sudoku [¡Ganaste!] - ©2015 Games V²");
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setLocationRelativeTo(null);
+    }
+
+}
